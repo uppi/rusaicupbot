@@ -70,7 +70,7 @@ class Crawler(object):
             if page_new_start is not None:
                 new_start_from = page_new_start
             for game in page_games:
-                if game["game_id"] <= self.games_start_from:
+                if game["game_id"] < self.games_start_from:
                     found = True
                     break
                 games.append(game)

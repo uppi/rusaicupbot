@@ -1,5 +1,6 @@
 # coding utf-8
 import logging
+import logging.handlers
 import traceback
 
 from telegram.ext import Updater, CommandHandler
@@ -17,6 +18,22 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.DEBUG)
 log = logging.getLogger()
+
+log.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+handler.setFormatter(formatter)
+handler.setLevel(logging.DEBUG)
+
+rot_handler = logging.handlers.RotatingFileHandler("logs/easyci.log")
+
+rot_handler.setFormatter(formatter)
+rot_handler.setLevel(logging.INFO)
+
+log.addHandler(handler)
+log.addHandler(rot_handler)
 
 
 logic = Logic(credentials["info_path"])

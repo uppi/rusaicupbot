@@ -6,8 +6,11 @@ from telegram.ext import Updater, CommandHandler
 
 
 from rusaicupbot.logic import Logic
-from rusaicupbot.credentials import BOT_TOKEN
+from rusaicupbot.credentials import credentials
 from rusaicupbot.formatter import format_top
+
+from rusaicupbot.crawler import Crawler
+from rusaicupbot.notifier import Notifier
 
 
 logging.basicConfig(
@@ -16,15 +19,20 @@ logging.basicConfig(
 log = logging.getLogger()
 
 
-logic = Logic()
+logic = Logic(credentials["info_path"])
+
+crawler = Crawler(logic, credentials["games_start_from"])
+notifier = Notifier(logic)
 
 HELP_TEXT = ("Статистика: /top\n"
              "Команда /top N - статистика по N первым участникам.\n"
              "Пример: /top 50\n\n"
              "Чтобы подписаться на результаты игр с участием USERNAME, "
              "используйте команду /subscribe USERNAME.\n"
-             "Пример: /subscribe Mr.Smile\n\n"
+             "Пример: /subscribe some_user\n\n"
              "Чтобы отписаться, используйте команду /unsubscribe USERNAME.\n\n"
+             "Чтобы посмотреть свои подписки, "
+             "используйте команду /subscriptions.\n\n"
              "Если что, пишите @upppi\n"
              "https://github.com/uppi/rusaicupbot")
 
@@ -33,7 +41,21 @@ def show_help(bot, update):
     """
     Show help.
     """
-    bot.sendMessage(HELP_TEXT)
+    chat_id = update.message.chat_id
+    bot.sendMessage(chat_id, HELP_TEXT)
+
+
+def show_subscriptions(bot, update):
+    """
+    Show subscriptions.
+    """
+    user_id = update.message.from_user.id
+    subs = logic.subscriptions_by_user(user_id)
+    if not subs:
+        bot.sendMessage(user_id, "У вас нет подписок.")
+    else:
+        bot.sendMessage(user_id, "Вы подписаны на {}.".format(
+            ", ".join(subs)))
 
 
 def top(bot, update):
@@ -46,7 +68,7 @@ def top(bot, update):
             top_args.append(
                 int(text[len("/top "):].strip()))
         except Exception:
-            bot.sendMessage(chat_id, "Некорректный формат запроса. ")
+            bot.sendMessage(chat_id, "Некорректный формат запроса.")
             log.error(
                 "Error while getting top for {} with args {} for: {}".format(
                     chat_id,
@@ -75,6 +97,13 @@ def subscribe(bot, update):
     text = update.message.text.strip()
 
     player_name = text[len("/subscribe "):]
+    if not player_name:
+        bot.sendMessage(
+            user_id,
+            "После /subscribe напишите имя игрока, "
+            "на которого хотите подписаться.\n"
+            "Пример:\n/subscribe username")
+        return
 
     try:
         logic.subscribe(user_id, player_name)
@@ -99,6 +128,13 @@ def unsubscribe(bot, update):
     text = update.message.text.strip()
 
     player_name = text[len("/unsubscribe "):]
+    if not player_name:
+        bot.sendMessage(
+            user_id,
+            "После /unsubscribe напишите имя игрока, "
+            "на которого хотите подписаться.\n"
+            "Пример:\n/unsubscribe username")
+        return
 
     try:
         logic.unsubscribe(user_id, player_name)
@@ -128,21 +164,28 @@ def run(token):
     updater.dispatcher.add_handler(
         CommandHandler('start', show_help), group=0)
     updater.dispatcher.add_handler(
+        CommandHandler('top', top), group=0)
+    updater.dispatcher.add_handler(
         CommandHandler('subscribe', subscribe), group=0)
     updater.dispatcher.add_handler(
         CommandHandler('unsubscribe', unsubscribe), group=0)
+    updater.dispatcher.add_handler(
+        CommandHandler('subscriptions', show_subscriptions), group=0)
 
     updater.dispatcher.add_error_handler(error)
 
     logic.bot = updater.bot
 
-    updater.start_polling()
-    updater.idle()
+    try:
+        crawler.start()
+        notifier.start()
+
+        updater.start_polling()
+        updater.idle()
+    finally:
+        crawler.stop()
+        notifier.stop()
 
 
 def main():
-    run(BOT_TOKEN)
-
-
-if __name__ == '__main__':
-    main()
+    run(credentials["TELEGRAM_BOT_TOKEN"])

@@ -1,123 +1,73 @@
+import json
+import os
+
+
 class Logic(object):
-    def top(number):
-        return [("Mr.Smile", 9000), ("somebody", 3000)]
+    def __init__(self, info_path):
+        self._subs = {}
+        self._subs_by_user = {}
+        self._top = []
+        self._games = []
+        self._sent_games = set()
+        self._info_path = info_path
+        self._load_info()
+
+    def top(self, number=50):
+        return self._top[:number]
+
+    def _load_info(self):
+        if os.path.exists(self._info_path):
+            with open(self._info_path) as infile:
+                info = json.load(infile)
+                self._subs_by_user = {
+                    int(k): v
+                    for k, v in info["subs_by_user"].items()
+                }
+                self._subs = info["subs"]
+                self._sent_games = set(info["sent_games"])
+
+    def _dump_info(self):
+        with open(self._info_path, "w") as outfile:
+            info = {}
+            info["subs_by_user"] = self._subs_by_user
+            info["subs"] = self._subs
+            info["sent_games"] = list(self._sent_games)
+            json.dump(info, outfile, indent=4)
 
     def subscribe(self, user, player):
-        pass
+        if player not in self._subs:
+            self._subs[player] = []
+        if user not in self._subs_by_user:
+            self._subs_by_user[user] = []
+        self._subs[player].append(user)
+        self._subs_by_user[user].append(player)
+        self._dump_info()
 
     def unsubscribe(self, user, player):
-        pass
+        if player in self._subs and user in self._subs[player]:
+            self._subs[player].remove(user)
+        if user in self._subs_by_user and player in self._subs[user]:
+            self._subs_by_user[user].remove(player)
+        self._dump_info()
 
-    def games(start_from_game_id):
-        return [
-            {
-                "game_id": 1234,
-                "scores": {
-                    "some_man": {
-                        "game_score": 3421,
-                        "game_place": 3,
-                        "delta": -21
-                    },
-                    "aaa2": {
-                        "game_score": 13513,
-                        "game_place": 3,
-                        "delta": 13
-                    },
-                    "aaa3": {
-                        "game_score": 1341,
-                        "game_place": 3,
-                        "delta": 15
-                    },
-                    "aaa4": {
-                        "game_score": 5135,
-                        "game_place": 3,
-                        "delta": 53
-                    },
-                    "aaa5": {
-                        "game_score": 13513,
-                        "game_place": 3,
-                        "delta": -1341
-                    },
-                    "aaa6": {
-                        "game_score": 135341,
-                        "game_place": 3,
-                        "delta": 314
-                    },
-                    "aaa7": {
-                        "game_score": 13413,
-                        "game_place": 3,
-                        "delta": 14
-                    },
-                    "aaa8": {
-                        "game_score": 13514,
-                        "game_place": 3,
-                        "delta": 32
-                    },
-                    "aaa9": {
-                        "game_score": 151,
-                        "game_place": 3,
-                        "delta": 32
-                    },
-                    "aaa0": {
-                        "game_score": 2352,
-                        "game_place": 3,
-                        "delta": 51
-                    }
-                }
-            },
-            {
-                "game_id": 1235,
-                "scores": {
-                    "other_man": {
-                        "game_score": 3421,
-                        "game_place": 3,
-                        "delta": -21
-                    },
-                    "aaa2": {
-                        "game_score": 3521,
-                        "game_place": 3,
-                        "delta": 13
-                    },
-                    "aaa3": {
-                        "game_score": 1455,
-                        "game_place": 3,
-                        "delta": 15
-                    },
-                    "aaa4": {
-                        "game_score": 235123,
-                        "game_place": 3,
-                        "delta": 53
-                    },
-                    "aaa5": {
-                        "game_score": 3421,
-                        "game_place": 3,
-                        "delta": -1341
-                    },
-                    "aaa6": {
-                        "game_score": 1234,
-                        "game_place": 3,
-                        "delta": 314
-                    },
-                    "aaa7": {
-                        "game_score": 452,
-                        "game_place": 3,
-                        "delta": 14
-                    },
-                    "aaa8": {
-                        "game_score": 235235,
-                        "game_place": 3,
-                        "delta": 32
-                    },
-                    "aaa9": {
-                        "game_score": 352,
-                        "game_place": 3,
-                        "delta": 32
-                    },
-                    "aaa0": {
-                        "game_score": 345,
-                        "game_place": 3,
-                        "delta": 51
-                    }
-                }
-            }
-        ]
+    def subscriptions(self):
+        return self._subs
+
+    def subscriptions_by_user(self, user):
+        return self._subs_by_user.get(user, [])
+
+    def games(self):
+        result = self._games
+        self._games = []
+        self._sent_games = self._sent_games.union(set(
+            g["game_id"] for g in result))
+        self._dump_info()
+        return result
+
+    def update_games(self, games):
+        self._games += [
+            g for g in games
+            if g["game_id"] not in self._sent_games]
+
+    def update_top(self, top):
+        self._top = top

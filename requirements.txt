@@ -1,0 +1,4 @@
+requests
+lxml
+python_telegram_bot
+nose

@@ -1,6 +1,7 @@
 import time
 import threading
 import logging
+import traceback
 
 from rusaicupbot.formatter import format_game
 
@@ -38,11 +39,14 @@ class Notifier(object):
     def run(self, stopped):
         time.sleep(START_DELAY_SEC)
         while not stopped.is_set():
-            log.info("Another round of notifications")
-            games = self.logic.games()
-            subs = self.logic.subscriptions()
-            self.handle_new_games(games, subs)
-            time.sleep(SLEEP_TIME_SEC)
+            try:
+                log.info("Another round of notifications")
+                games = self.logic.games()
+                subs = self.logic.subscriptions()
+                self.handle_new_games(games, subs)
+                time.sleep(SLEEP_TIME_SEC)
+            except Exception:
+                log.error(traceback.format_exc())
 
     def start(self):
         self.stopped = threading.Event()

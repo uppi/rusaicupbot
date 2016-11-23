@@ -25,11 +25,14 @@ class Crawler(object):
 
     def run(self, stopped):
         while not stopped.is_set():
-            top = self.crawl_top()
-            games = self.crawl_games()
-            self.logic.update_top(top)
-            self.logic.update_games(games)
-            time.sleep(SLEEP_TIME_SEC)
+            try:
+                top = self.crawl_top()
+                games = self.crawl_games()
+                self.logic.update_top(top)
+                self.logic.update_games(games)
+                time.sleep(SLEEP_TIME_SEC)
+            except Exception:
+                log.error(traceback.format_exc())
 
     def start(self):
         self.stopped = threading.Event()

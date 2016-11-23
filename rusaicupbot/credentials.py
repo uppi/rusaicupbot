@@ -1,5 +1,5 @@
 credentials = {
-    "games_start_from": 39786,
+    "games_start_from": 42028,
     "info_path": "info.json"
 }
 

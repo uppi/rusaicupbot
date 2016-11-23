@@ -18,10 +18,15 @@ class Notifier(object):
         self.stopped = None
 
     def notify(self, user, game):
-        log.info("Notifying {} about game {}".format(user, game["game_id"]))
-        self.logic.bot.sendMessage(
-            user,
-            format_game(game, self.logic.subscriptions_by_user(user)))
+        try:
+            log.info("Notifying {} about game {}".format(
+                user, game["game_id"]))
+            self.logic.bot.sendMessage(
+                user,
+                format_game(game, self.logic.subscriptions_by_user(user)),
+                disable_web_page_preview=True)
+        except Exception:
+            log.error(traceback.format_exc())
 
     def handle_new_games(self, games, subs):
         log.info("Notifying about {} games".format(len(games)))

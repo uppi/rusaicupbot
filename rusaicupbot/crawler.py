@@ -50,13 +50,18 @@ class Crawler(object):
         first_place = None
         page = 1
         while True:
-            page_standings = self.crawl_standings_page(page)
-            if page_standings[0]["place"] == first_place:
-                log.info("Ended crawling standings at page {}".format(page))
+            try:
+                page_standings = self.crawl_standings_page(page)
+                if page_standings[0]["place"] == first_place:
+                    log.info("Ended crawling standings at page {}".format(
+                        page))
+                    break
+                first_place = page_standings[0]["place"]
+                standings += page_standings
+                page += 1
+            except:
+                log.error(traceback.format_exc())
                 break
-            first_place = page_standings[0]["place"]
-            standings += page_standings
-            page += 1
             time.sleep(1.1)
         return standings
 
@@ -67,20 +72,23 @@ class Crawler(object):
         page = 1
         found = False
         while not found:
-            page_new_start, page_games = self.crawl_games_page(page)
-            if page_new_start is not None:
-                new_start_from = page_new_start
-            else:
-                found = True
-            for game in page_games:
-                if game["game_id"] < self.games_start_from:
+            try:
+                page_new_start, page_games = self.crawl_games_page(page)
+                if page_new_start is not None:
+                    new_start_from = page_new_start
+                else:
                     found = True
+                for game in page_games:
+                    if game["game_id"] < self.games_start_from:
+                        found = True
+                        break
+                    games.append(game)
+                if found:
                     break
-                games.append(game)
-            if found:
-                break
-                log.info("Ended crawling games at page {}".format(page))
-            page += 1
+                    log.info("Ended crawling games at page {}".format(page))
+                page += 1
+            except:
+                log.error(traceback.format_exc())
             time.sleep(0.5)
         if new_start_from is not None:
             self.games_start_from = new_start_from

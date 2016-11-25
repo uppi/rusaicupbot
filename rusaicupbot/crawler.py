@@ -70,6 +70,8 @@ class Crawler(object):
             page_new_start, page_games = self.crawl_games_page(page)
             if page_new_start is not None:
                 new_start_from = page_new_start
+            else:
+                found = True
             for game in page_games:
                 if game["game_id"] < self.games_start_from:
                     found = True
@@ -122,37 +124,39 @@ class Crawler(object):
             'http://russianaicup.ru/contest/{}/games/page/{}'.format(
                 self.contest_num, pagenum))
         tree = html.fromstring(page.content)
-        for tr in tree.xpath(GAMES_XPATH_GAME):
-            tds = tr.xpath("td")
-            game_id = int(tds[0].text_content().strip())
+        try:
+            for tr in tree.xpath(GAMES_XPATH_GAME):
+                tds = tr.xpath("td")
+                game_id = int(tds[0].text_content().strip())
 
-            if "Game is testing now" in tr.text_content():
-                log.info("Skipping game {}, still testing".format(game_id))
-                new_start = game_id
-                continue
+                if "Game is testing now" in tr.text_content():
+                    log.info("Skipping game {}, still testing".format(game_id))
+                    new_start = game_id
+                    continue
 
-            creator = tds[3].text_content().strip()
-            players = tds[4].text_content().split()
-            scores = tds[6].text_content().split()
-            places = tds[7].text_content().split()
-            deltas = tds[8].text_content().split()
-            if not deltas:
-                deltas = [None] * 10
-            data = list(zip(players, scores, places, deltas))
+                creator = tds[3].text_content().strip()
+                players = tds[4].text_content().split()
+                scores = tds[6].text_content().split()
+                places = tds[7].text_content().split()
+                deltas = tds[8].text_content().split()
+                if not deltas:
+                    deltas = [None] * 10
+                data = list(zip(players, scores, places, deltas))
 
-            game = {
-                "game_id": game_id,
-                "creator": creator,
-                "scores": {
-                    player: {
-                        "player": player,
-                        "score": int(score),
-                        "place": int(place),
-                        "delta": int(delta) if delta is not None else None
-                    } for player, score, place, delta in data
+                game = {
+                    "game_id": game_id,
+                    "creator": creator,
+                    "scores": {
+                        player: {
+                            "player": player,
+                            "score": int(score),
+                            "place": int(place),
+                            "delta": int(delta) if delta is not None else None
+                        } for player, score, place, delta in data
+                    }
                 }
-            }
-            log.info("Adding game {}".format(game_id))
-            games.append(game)
-
+                log.info("Adding game {}".format(game_id))
+                games.append(game)
+        except Exception:
+            log.info(traceback.format_exc())
         return (new_start, games)

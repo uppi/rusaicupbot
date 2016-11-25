@@ -8,7 +8,7 @@ from telegram.ext import Updater, CommandHandler
 
 from rusaicupbot.logic import Logic
 from rusaicupbot.credentials import credentials
-from rusaicupbot.formatter import format_top
+from rusaicupbot.formatter import format_top, format_positions
 
 from rusaicupbot.crawler import Crawler
 from rusaicupbot.notifier import Notifier
@@ -44,11 +44,13 @@ crawler = Crawler(logic,
 notifier = Notifier(logic)
 
 HELP_TEXT = ("Статистика: /top\n"
-             "Команда /top N - статистика по N первым участникам.\n"
+             "/top N - статистика по N первым участникам.\n"
              "Пример: /top 50\n\n"
+             "/pos - позиции игроков, на которых вы подписаны.\n"
+             "/pos user1 user2 user3 - позиции игроков, "
+             "перечисленных через пробел.\n\n"
              "Чтобы подписаться на результаты игр с участием USERNAME, "
              "используйте команду /subscribe USERNAME.\n"
-             "Пример: /subscribe some_user\n\n"
              "Чтобы отписаться, используйте команду /unsubscribe USERNAME.\n\n"
              "Чтобы посмотреть свои подписки, "
              "используйте команду /subscriptions.\n\n"
@@ -104,6 +106,25 @@ def top(bot, update):
                 chat_id,
                 top_args,
                 traceback.format_exc()))
+
+
+def pos(bot, update):
+    """
+    Show position.
+    """
+    user_id = update.message.from_user.id
+    text = update.message.text.strip()
+    player_names = text[len("/pos "):].split()
+    if not player_names:
+        player_names = logic.subscriptions_by_user(user_id)
+    if not player_names:
+        bot.sendMessage(user_id, "У вас нет подписок и вы никого не указали.")
+    else:
+        positions = logic.positions(player_names)
+        if not positions:
+            bot.sendMessage(user_id, "Указанные имена некорректны.")
+        else:
+            bot.sendMessage(user_id, format_positions(positions))
 
 
 def subscribe(bot, update):
@@ -184,6 +205,8 @@ def run(token):
         CommandHandler('start', show_help), group=0)
     updater.dispatcher.add_handler(
         CommandHandler('top', top), group=0)
+    updater.dispatcher.add_handler(
+        CommandHandler('pos', pos), group=0)
     updater.dispatcher.add_handler(
         CommandHandler('subscribe', subscribe), group=0)
     updater.dispatcher.add_handler(

@@ -1,9 +1,17 @@
 def format_top(results):
     return "\n".join("{}{} {} {}".format(
         i + 1,
-        " " * (4 - len(str(i))),
+        " " * (5 - len(str(i))),
         kv["player"],
         kv["rating"]) for i, kv in enumerate(results))
+
+
+def format_positions(results):
+    return "\n".join("{}{} {} {}".format(
+        kv["place"],
+        " " * (5 - len(str(kv["place"]))),
+        kv["player"],
+        kv["rating"]) for kv in results)
 
 
 def format_game(game, players_to_highlight):

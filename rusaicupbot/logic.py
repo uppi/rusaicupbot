@@ -15,6 +15,9 @@ class Logic(object):
     def top(self, number=50):
         return self._top[:number]
 
+    def positions(self, names):
+        return [p for p in self._top if p["player"] in names]
+
     def _load_info(self):
         if os.path.exists(self._info_path):
             with open(self._info_path) as infile:

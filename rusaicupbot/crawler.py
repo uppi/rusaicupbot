@@ -17,10 +17,11 @@ SLEEP_TIME_SEC = 180
 
 
 class Crawler(object):
-    def __init__(self, logic, games_start_from):
+    def __init__(self, logic, games_start_from, contest_num):
         self.logic = logic
         self.thread = None
         self.stopped = None
+        self.contest_num = contest_num
         self.games_start_from = games_start_from
 
     def run(self, stopped):
@@ -88,11 +89,12 @@ class Crawler(object):
 
     def crawl_standings_page(self, pagenum):
         players = []
-        log.info("Crawling standings page {}".format(pagenum))
+        log.info("Crawling standings page {} for contest {}".format(
+            pagenum, self.contest_num))
 
         page = requests.get(
-            'http://russianaicup.ru/contest/1/standings/page/{}'.format(
-                pagenum))
+            'http://russianaicup.ru/contest/{}/standings/page/{}'.format(
+                self.contest_num, pagenum))
         tree = html.fromstring(page.content)
         for tr in tree.xpath(STANDINGS_XPATH_TR):
             try:
@@ -113,10 +115,12 @@ class Crawler(object):
     def crawl_games_page(self, pagenum):
         games = []
         new_start = None
-        log.info("Crawling games page {}".format(pagenum))
+        log.info("Crawling games page {} for contest {}".format(
+            pagenum, self.contest_num))
 
         page = requests.get(
-            'http://russianaicup.ru/contest/1/games/page/{}'.format(pagenum))
+            'http://russianaicup.ru/contest/{}/games/page/{}'.format(
+                self.contest_num, pagenum))
         tree = html.fromstring(page.content)
         for tr in tree.xpath(GAMES_XPATH_GAME):
             tds = tr.xpath("td")

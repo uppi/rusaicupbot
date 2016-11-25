@@ -38,7 +38,9 @@ log.addHandler(rot_handler)
 
 logic = Logic(credentials["info_path"])
 
-crawler = Crawler(logic, credentials["games_start_from"])
+crawler = Crawler(logic,
+                  credentials["games_start_from"],
+                  credentials["contest_num"])
 notifier = Notifier(logic)
 
 HELP_TEXT = ("Статистика: /top\n"

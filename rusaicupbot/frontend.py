@@ -112,19 +112,20 @@ def pos(bot, update):
     """
     Show position.
     """
+    chat_id = update.message.chat_id
     user_id = update.message.from_user.id
     text = update.message.text.strip()
     player_names = text[len("/pos "):].split()
     if not player_names:
         player_names = logic.subscriptions_by_user(user_id)
     if not player_names:
-        bot.sendMessage(user_id, "У вас нет подписок и вы никого не указали.")
+        bot.sendMessage(chat_id, "У вас нет подписок и вы никого не указали.")
     else:
         positions = logic.positions(player_names)
         if not positions:
-            bot.sendMessage(user_id, "Указанные имена некорректны.")
+            bot.sendMessage(chat_id, "Указанные имена некорректны.")
         else:
-            bot.sendMessage(user_id, format_positions(positions))
+            bot.sendMessage(chat_id, format_positions(positions))
 
 
 def subscribe(bot, update):

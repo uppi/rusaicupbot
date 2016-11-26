@@ -49,7 +49,7 @@ class Logic(object):
     def unsubscribe(self, user, player):
         if player in self._subs and user in self._subs[player]:
             self._subs[player].remove(user)
-        if user in self._subs_by_user and player in self._subs[user]:
+        if user in self._subs_by_user and player in self._subs_by_user[user]:
             self._subs_by_user[user].remove(player)
         self._dump_info()
 

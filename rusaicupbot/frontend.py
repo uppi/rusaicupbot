@@ -83,11 +83,12 @@ def top(bot, update):
     chat_id = update.message.chat_id
     text = update.message.text.strip()
 
-    top_args = []
-    if text != "/top":
+    top_args = text.split()[1:]
+    if len(top_args) > 1:
+        top_args = top_args[0]
+    if top_args:
         try:
-            top_args.append(
-                int(text[len("/top "):].strip()))
+            top_args = list(map(int, top_args))
         except Exception:
             bot.sendMessage(chat_id, "Некорректный формат запроса.")
             log.error(
@@ -115,7 +116,7 @@ def pos(bot, update):
     chat_id = update.message.chat_id
     user_id = update.message.from_user.id
     text = update.message.text.strip()
-    player_names = text[len("/pos "):].split()
+    player_names = text.split()[1:]
     if not player_names:
         player_names = logic.subscriptions_by_user(user_id)
     if not player_names:
@@ -136,9 +137,8 @@ def subscribe(bot, update):
     """
     user_id = update.message.from_user.id
     text = update.message.text.strip()
-
-    player_name = text[len("/subscribe "):]
-    if not player_name:
+    player_names = text.split()[1:]
+    if not player_names:
         bot.sendMessage(
             user_id,
             "После /subscribe напишите имя игрока, "
@@ -146,17 +146,18 @@ def subscribe(bot, update):
             "Пример:\n/subscribe username")
         return
 
-    try:
-        logic.subscribe(user_id, player_name)
-        bot.sendMessage(
-            user_id,
-            "Вы подписались на игры с участием {}.".format(player_name))
-    except Exception:
-        bot.sendMessage(user_id, "Произошла ошибка. Мы уже разбираемся.")
-        log.error("Error while subscribing {} to {}: {}".format(
-            user_id,
-            player_name,
-            traceback.format_exc()))
+    for player_name in player_names:
+        try:
+            logic.subscribe(user_id, player_name)
+            bot.sendMessage(
+                user_id,
+                "Вы подписались на игры с участием {}.".format(player_name))
+        except Exception:
+            bot.sendMessage(user_id, "Произошла ошибка. Мы уже разбираемся.")
+            log.error("Error while subscribing {} to {}: {}".format(
+                user_id,
+                player_name,
+                traceback.format_exc()))
 
 
 def unsubscribe(bot, update):
@@ -168,8 +169,8 @@ def unsubscribe(bot, update):
     user_id = update.message.from_user.id
     text = update.message.text.strip()
 
-    player_name = text[len("/unsubscribe "):]
-    if not player_name:
+    player_names = text.split()[1:]
+    if not player_names:
         bot.sendMessage(
             user_id,
             "После /unsubscribe напишите имя игрока, "
@@ -177,17 +178,18 @@ def unsubscribe(bot, update):
             "Пример:\n/unsubscribe username")
         return
 
-    try:
-        logic.unsubscribe(user_id, player_name)
-        bot.sendMessage(
-            user_id,
-            "Вы отписались от игр с участием {}.".format(player_name))
-    except Exception:
-        bot.sendMessage(user_id, "Произошла ошибка. Мы уже разбираемся.")
-        log.error("Error while unsubscribing {} from {}: {}".format(
-            user_id,
-            player_name,
-            traceback.format_exc()))
+    for player_name in player_names:
+        try:
+            logic.unsubscribe(user_id, player_name)
+            bot.sendMessage(
+                user_id,
+                "Вы отписались от игр с участием {}.".format(player_name))
+        except Exception:
+            bot.sendMessage(user_id, "Произошла ошибка. Мы уже разбираемся.")
+            log.error("Error while unsubscribing {} from {}: {}".format(
+                user_id,
+                player_name,
+                traceback.format_exc()))
 
 
 def error(bot, update, error):

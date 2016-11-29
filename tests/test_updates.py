@@ -9,6 +9,7 @@ class TestUpdates(unittest.TestCase):
         game1 = {
             "game_id": 1,
             "creator": "System",
+            "kind": "10x1+",
             "scores": {
                 "aaa2": {
                     "score": 13513,
@@ -26,6 +27,7 @@ class TestUpdates(unittest.TestCase):
         game2 = {
             "game_id": 2,
             "creator": "System",
+            "kind": "10x1",
             "scores": {
                 "aaa2": {
                     "score": 135,
@@ -43,6 +45,7 @@ class TestUpdates(unittest.TestCase):
         game1_upd = {
             "game_id": 1,
             "creator": "System",
+            "kind": "10x1+",
             "scores": {
                 "aaa2": {
                     "score": 13513,

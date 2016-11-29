@@ -16,8 +16,9 @@ def format_positions(results):
 
 def format_game(game, players_to_highlight):
     formatted = []
-    formatted.append("http://russianaicup.ru/game/view/{}\n".format(
+    formatted.append("http://russianaicup.ru/game/view/{}".format(
         game["game_id"]))
+    formatted.append(game["kind"])
     formatted.append("Создатель: {}".format(game["creator"]))
     for player, game_info in sorted(
             game["scores"].items(), key=lambda item: -item[1]["score"]):

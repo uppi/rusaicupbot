@@ -7,6 +7,7 @@ class TestFormatter(unittest.TestCase):
         game = {
             "game_id": 1234,
             "creator": "System",
+            "kind": "10x1+",
             "scores": {
                 "some_man": {
                     "score": 3421,
@@ -27,7 +28,8 @@ class TestFormatter(unittest.TestCase):
         }
         formatted = format_game(game, ["aaa2", "aaa3"])
         self.assertEqual(
-            "http://russianaicup.ru/game/view/1234\n\n"
+            "http://russianaicup.ru/game/view/1234\n"
+            "10x1+\n"
             "Создатель: System\n"
             "1  * aaa2 13513 [?]\n"
             "2  some_man 3421 -21\n"

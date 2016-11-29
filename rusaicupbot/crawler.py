@@ -148,6 +148,7 @@ class Crawler(object):
                     new_start = game_id
                     continue
 
+                kind = tds[1].text_content().strip()
                 creator = tds[3].text_content().strip()
                 players = tds[4].text_content().split()
                 scores = tds[6].text_content().split()
@@ -161,6 +162,7 @@ class Crawler(object):
 
                 game = {
                     "game_id": game_id,
+                    "kind": kind,
                     "creator": creator,
                     "scores": {
                         player: {

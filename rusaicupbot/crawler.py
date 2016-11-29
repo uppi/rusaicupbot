@@ -89,11 +89,18 @@ class Crawler(object):
             except:
                 log.error(traceback.format_exc())
             time.sleep(0.5)
+        previous_games_start = self.games_start_from
         if new_start_from is not None:
             self.games_start_from = new_start_from
         elif games:
             self.games_start_from = games[0]["game_id"]
-        log.info("New start from is {}".format(self.games_start_from))
+
+        if self.games_start_from < previous_games_start:
+            log.eror("START < PREVIOUS START: {}, {}".format(
+                self.games_start_from, previous_games_start))
+            self.games_start_from = previous_games_start
+        else:
+            log.info("New start from is {}".format(self.games_start_from))
         return games
 
     def crawl_standings_page(self, pagenum):

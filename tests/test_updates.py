@@ -78,8 +78,8 @@ class TestUpdates(unittest.TestCase):
                 return namedtuple('Message', ['message_id'])(
                     message_id=mockbot.idx)
 
-            def editMessageText(self, user, msg_id, msg, **kwargs):
-                updated.append((user, msg_id, msg))
+            def editMessageText(self, chat_id, message_id, text, **kwargs):
+                updated.append((chat_id, message_id, text))
         logic.bot = mockbot()
 
         logic.update_games(games)

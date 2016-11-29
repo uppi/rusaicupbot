@@ -75,13 +75,12 @@ class Crawler(object):
             try:
                 page_new_start, page_games = self.crawl_games_page(page)
                 if page_new_start is not None:
+                    log.debug("So we setting new start from {} to {}".format(
+                        page_new_start, new_start_from))
                     new_start_from = page_new_start
-                else:
-                    found = True
                 for game in page_games:
-                    if game["game_id"] < self.games_start_from:
+                    if game["game_id"] <= self.games_start_from:
                         found = True
-                        break
                     games.append(game)
                 if found:
                     break
@@ -149,6 +148,8 @@ class Crawler(object):
                 deltas = tds[8].text_content().split()
                 if not deltas:
                     deltas = [None] * 10
+                    log.debug("Game {} is not ready yet".format(players))
+                    new_start = game_id
                 data = list(zip(players, scores, places, deltas))
 
                 game = {
@@ -163,8 +164,10 @@ class Crawler(object):
                         } for player, score, place, delta in data
                     }
                 }
+
                 log.info("Adding game {}".format(game_id))
                 games.append(game)
         except Exception:
             log.info(traceback.format_exc())
+        log.debug("Page new start is {}".format(new_start))
         return (new_start, games)

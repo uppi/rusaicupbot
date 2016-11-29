@@ -2,11 +2,11 @@ import time
 import threading
 import logging
 import traceback
+from collections import defaultdict
 
 from rusaicupbot.formatter import format_game
 
-SLEEP_TIME_SEC = 20
-START_DELAY_SEC = 20
+DELAY_SEC = 0.5
 
 log = logging.getLogger()
 
@@ -16,42 +16,56 @@ class Notifier(object):
         self.logic = logic
         self.thread = None
         self.stopped = None
+        self.message_ids = defaultdict(dict)
 
     def notify(self, user, game):
         try:
             log.info("Notifying {} about game {}".format(
                 user, game["game_id"]))
-            self.logic.bot.sendMessage(
+            message = self.logic.bot.sendMessage(
                 user,
                 format_game(game, self.logic.subscriptions_by_user(user)),
+                disable_web_page_preview=True)
+            self.message_ids[user][game["game_id"]] = message.message_id
+        except Exception:
+            log.error(traceback.format_exc())
+
+    def update_notify(self, user, game):
+        try:
+            log.info("Updating notification for user {} about game {}".format(
+                user, game["game_id"]))
+            message_id = self.message_ids[user].get(game["game_id"])
+            if message_id is None:
+                log.error(
+                    "Couldn't find message_id to update "
+                    "notification for user {} about game {}".format(
+                        user, game["game_id"]))
+                return
+            del self.message_ids[user][game["game_id"]]
+            self.logic.bot.editMessageText(
+                chat_id=user,
+                message_id=message_id,
+                text=format_game(game, self.logic.subscriptions_by_user(user)),
                 disable_web_page_preview=True)
         except Exception:
             log.error(traceback.format_exc())
 
-    def handle_new_games(self, games, subs):
-        log.info("Notifying about {} games".format(len(games)))
-        log.info("Subs: {}".format(subs))
-        for game in games:
-            recepients = []
-            for player in game["scores"].keys():
-                recepients.extend(subs.get(player, []))
-            log.info("Found {} recepients for game {}, players: {}".format(
-                len(recepients), game["game_id"], " ".join(
-                    game["scores"].keys())))
-            for recepient in set(recepients):
-                self.notify(recepient, game)
+    def notify_current(self):
+        task = self.logic.get_next_notification_task()
+        if task is None:
+            log.debug("notification task doesn't exist")
+            return False
+        log.debug("notification task exists")
+        if task["is_update"]:
+            self.update_notify(task["user"], task["game"])
+        else:
+            self.notify(task["user"], task["game"])
+        return True
 
     def run(self, stopped):
-        time.sleep(START_DELAY_SEC)
         while not stopped.is_set():
-            try:
-                log.info("Another round of notifications")
-                games = self.logic.games()
-                subs = self.logic.subscriptions()
-                self.handle_new_games(games, subs)
-                time.sleep(SLEEP_TIME_SEC)
-            except Exception:
-                log.error(traceback.format_exc())
+            time.sleep(DELAY_SEC)
+            self.notify_current()
 
     def start(self):
         self.stopped = threading.Event()

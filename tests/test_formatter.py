@@ -40,6 +40,6 @@ class TestFormatter(unittest.TestCase):
             {"player": "somebody", "rating": 3000}]
         formatted = format_top(top)
         self.assertEqual(
-            "1    Mr.Smile 9000\n"
-            "2    somebody 3000",
+            "1     Mr.Smile 9000\n"
+            "2     somebody 3000",
             formatted)

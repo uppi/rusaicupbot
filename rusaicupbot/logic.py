@@ -20,6 +20,8 @@ class Logic(object):
         self._info_path = info_path
         self._load_info()
 
+        self.crawler = None
+
         self._notification_queue = queue.Queue()
 
     def top(self, number=50):
@@ -81,6 +83,15 @@ class Logic(object):
         recepients = set(recepients)
         log.info("recepients for game {}: {}".format(
             game["game_id"], ", ".join(map(str, recepients))))
+
+        if (recepients and
+            self.crawler is not None and
+            game.get("token") is not None):
+                teams = self.crawler.crawl_teams(game["token"])
+                for player in game["scores"].keys():
+                    if player in teams:
+                        game["scores"][player]["team"] = teams[player]
+
         for user in set(recepients):
             self._notification_queue.put(
                 {

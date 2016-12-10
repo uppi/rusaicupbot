@@ -4,6 +4,8 @@ import logging
 import traceback
 from collections import defaultdict
 
+import telegram
+
 from rusaicupbot.formatter import format_game
 
 DELAY_SEC = 0.5
@@ -25,6 +27,7 @@ class Notifier(object):
             message = self.logic.bot.sendMessage(
                 user,
                 format_game(game, self.logic.subscriptions_by_user(user)),
+                parse_mode=telegram.ParseMode.HTML,
                 disable_web_page_preview=True)
             self.message_ids[user][game["game_id"]] = message.message_id
         except Exception:
@@ -46,6 +49,7 @@ class Notifier(object):
                 chat_id=user,
                 message_id=message_id,
                 text=format_game(game, self.logic.subscriptions_by_user(user)),
+                parse_mode=telegram.ParseMode.HTML,
                 disable_web_page_preview=True)
         except Exception:
             log.error(traceback.format_exc())

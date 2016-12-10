@@ -2,6 +2,8 @@ import threading
 import time
 import logging
 import traceback
+import json
+from contextlib import closing
 
 import requests
 from lxml import html
@@ -19,6 +21,7 @@ SLEEP_TIME_SEC = 180
 class Crawler(object):
     def __init__(self, logic, games_start_from, contest_num):
         self.logic = logic
+        self.logic.crawler = self
         self.thread = None
         self.stopped = None
         self.contest_num = contest_num
@@ -154,6 +157,7 @@ class Crawler(object):
                 scores = tds[6].text_content().split()
                 places = tds[7].text_content().split()
                 deltas = tds[8].text_content().split()
+                token = tds[9].xpath("div")[0].get("data-token")
                 if not deltas:
                     deltas = [None] * 10
                     log.debug("Game {} is not ready yet".format(players))
@@ -164,6 +168,7 @@ class Crawler(object):
                     "game_id": game_id,
                     "kind": kind,
                     "creator": creator,
+                    "token": token,
                     "scores": {
                         player: {
                             "player": player,
@@ -180,3 +185,14 @@ class Crawler(object):
             log.info(traceback.format_exc())
         log.debug("Page new start is {}".format(new_start))
         return (new_start, games)
+
+    def crawl_teams(self, token):
+        log.info("Crawling teams for {}".format(token))
+        url = "http://russianaicup.ru/boombox/data/games/{}?tick=0&fields=tickIndex,players,wizards".format(token)
+        try:
+            with closing(requests.get(url, stream=True)) as r:
+                for l in r.iter_lines():
+                    return {p['name']: p['faction'] for p in json.loads(l.decode())["players"]}
+        except:
+            log.warning(traceback.format_exc())
+            return {}

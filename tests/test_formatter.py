@@ -12,7 +12,8 @@ class TestFormatter(unittest.TestCase):
                 "some_man": {
                     "score": 3421,
                     "place": 2,
-                    "delta": -21
+                    "delta": -21,
+                    "team": "RENEGADES"
                 },
                 "aaa2": {
                     "score": 13513,
@@ -22,7 +23,8 @@ class TestFormatter(unittest.TestCase):
                 "aaa3": {
                     "score": 1341,
                     "place": 3,
-                    "delta": 15
+                    "delta": 15,
+                    "team": "ACADEMY"
                 }
             }
         }
@@ -32,8 +34,8 @@ class TestFormatter(unittest.TestCase):
             "10x1+\n"
             "Создатель: System\n"
             "1  * aaa2 13513 [?]\n"
-            "2  some_man 3421 -21\n"
-            "3  * aaa3 1341 +15",
+            "2  <i>some_man</i> 3421 -21\n"
+            "3  <b>* aaa3</b> 1341 +15",
             formatted)
 
     def test_top(self):

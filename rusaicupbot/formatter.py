@@ -1,7 +1,7 @@
 def format_top(results):
     return "\n".join("{}{} {} {}".format(
         i + 1,
-        " " * (5 - len(str(i))),
+        " " * (5 - len(str(i + 1))),
         kv["player"],
         kv["rating"]) for i, kv in enumerate(results))
 

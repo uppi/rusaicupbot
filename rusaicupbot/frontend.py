@@ -89,6 +89,8 @@ def top(bot, update):
     if top_args:
         try:
             top_args = list(map(int, top_args))
+            if top_args[0] <= 0:
+                raise Exception("Top argument should be positive")
         except Exception:
             bot.sendMessage(chat_id, "Некорректный формат запроса.")
             log.error(
@@ -96,6 +98,7 @@ def top(bot, update):
                     chat_id,
                     top_args,
                     traceback.format_exc()))
+            return
     try:
         bot.sendMessage(
             chat_id,

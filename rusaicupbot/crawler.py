@@ -117,10 +117,13 @@ class Crawler(object):
         tree = html.fromstring(page.content)
         for tr in tree.xpath(STANDINGS_XPATH_TR):
             try:
-                player = dict(zip(LABELS, tr.text_content().split()))
+                tc = tr.text_content().split()
+                if tc[3] == '/':
+                     del tc[3:5]
+                player = dict(zip(LABELS, tc))
                 for k, v in list(player.items()):
                     if k != "player":
-                        player[k] = int(v.replace("%", ""))
+                        player[k] = int(v) if "." not in v else float(v.replace("%", ""))
                 players.append(player)
             except Exception:
                 log.error("Couldn't parse player: {}".format(

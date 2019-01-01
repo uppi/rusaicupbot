@@ -27,13 +27,7 @@ formatter = logging.Formatter(
 handler.setFormatter(formatter)
 handler.setLevel(logging.DEBUG)
 
-rot_handler = logging.handlers.RotatingFileHandler("logs/easyci.log")
-
-rot_handler.setFormatter(formatter)
-rot_handler.setLevel(logging.INFO)
-
 log.addHandler(handler)
-log.addHandler(rot_handler)
 
 
 logic = Logic(credentials["info_path"])

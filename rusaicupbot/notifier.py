@@ -57,7 +57,6 @@ class Notifier(object):
     def notify_current(self):
         task = self.logic.get_next_notification_task()
         if task is None:
-            log.debug("notification task doesn't exist")
             return False
         log.debug("notification task exists")
         if task["is_update"]:

@@ -123,7 +123,13 @@ class Crawler(object):
                 player = dict(zip(LABELS, tc))
                 for k, v in list(player.items()):
                     if k != "player":
-                        player[k] = int(v) if "." not in v else float(v.replace("%", ""))
+                        try:
+                            if v == '-':
+                                v = '0'
+                            v = int(v) if "." not in v else float(v.replace("%", ""))
+                        except Exception:
+                            log.warning("Exception while parsing {}, fallback to 0".format(v))
+                        player[k] = v
                 players.append(player)
             except Exception:
                 log.error("Couldn't parse player: {}".format(
